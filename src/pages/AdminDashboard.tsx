@@ -3,8 +3,9 @@ import { useLocation } from 'wouter'
 import { useAuth } from '@/lib/auth'
 import { getOrders, updateOrderStatus, deleteOrder, Order } from '@/lib/orders'
 import { getFoods, addFood, updateFood, deleteFood, Food } from '@/lib/foods'
+import { getContactMessages, deleteContactMessage, ContactMessage } from '@/lib/contactMessages'
 
-const TABS = ['Aperçu', 'Commandes', 'Menu', 'Utilisateurs'] as const
+const TABS = ['Aperçu', 'Commandes', 'Messages', 'Menu', 'Utilisateurs'] as const
 type Tab = typeof TABS[number]
 
 const STATUS_COLORS: Record<string, string> = {
@@ -15,8 +16,8 @@ const STATUS_COLORS: Record<string, string> = {
 }
 const STATUS_OPTIONS = ['pending', 'preparing', 'delivered', 'cancelled']
 const STATUS_FR: Record<string, string> = { pending: 'En attente', preparing: 'En préparation', delivered: 'Livré', cancelled: 'Annulé' }
-const CATEGORIES = ['Pizza', 'Burger', 'Momo', 'Autre']
-const IMG_OPTIONS = ['/menu-pizza.jpg', '/menu-burger.jpg', '/menu-momo.jpg']
+const CATEGORIES = ['Pizza', 'Burger', 'Momo', 'Pasta', 'Tacos', 'Salade', 'Grill', 'Dessert', 'Boissons', 'Autre']
+const IMG_OPTIONS = ['/menu-pizza.jpg', '/menu-burger.jpg', '/menu-momo.jpg', '/menu-pasta.png', '/menu-tacos.png', '/menu-salad.png', '/menu-grill.png', '/menu-dessert.png', '/menu-drinks.png', '/pizza.jpg', '/burger.jpg', '/momo.jpg', '/bg.jpg']
 
 const EMPTY_FORM = { title: '', price: '', img: IMG_OPTIONS[0], desc: '', category: CATEGORIES[0] }
 
@@ -25,6 +26,7 @@ export default function AdminDashboard() {
   const [, setLocation] = useLocation()
   const [tab, setTab] = useState<Tab>('Aperçu')
   const [orders, setOrders] = useState<Order[]>([])
+  const [messages, setMessages] = useState<ContactMessage[]>([])
   const [foods, setFoods] = useState<Food[]>([])
   const [users, setUsers] = useState<{ id: string; name: string; email: string; role: string }[]>([])
   const [editFood, setEditFood] = useState<Food | null>(null)
@@ -38,6 +40,7 @@ export default function AdminDashboard() {
 
   function refresh() {
     setOrders(getOrders().reverse())
+    setMessages(getContactMessages().reverse())
     setFoods(getFoods())
     try {
       const raw = localStorage.getItem('restaurant_users')
@@ -92,6 +95,7 @@ export default function AdminDashboard() {
               {[
                 { label: 'Commandes', value: orders.length, color: '#1f2937', icon: '📦' },
                 { label: 'En attente', value: orders.filter(o => o.status === 'pending').length, color: '#d97706', icon: '⏳' },
+                { label: 'Messages', value: messages.length, color: '#0891b2', icon: '✉️' },
                 { label: 'Revenus', value: `$${revenue.toFixed(2)}`, color: '#ff6b81', icon: '💰' },
                 { label: 'Plats', value: foods.length, color: '#2563eb', icon: '🍽️' },
               ].map((s) => (
@@ -101,6 +105,27 @@ export default function AdminDashboard() {
                   <p className="text-2xl font-bold mt-1" style={{ color: s.color }}>{s.value}</p>
                 </div>
               ))}
+            </div>
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between">
+                <h3 className="font-semibold text-gray-800">Derniers messages</h3>
+                <button onClick={() => setTab('Messages')} className="text-sm" style={{ color: '#ff6b81' }}>Voir tout →</button>
+              </div>
+              {messages.slice(0, 3).map((message) => (
+                <div key={message.id} className="px-6 py-4 border-b border-gray-50 last:border-0">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">{message.name}</p>
+                      <p className="text-xs text-gray-500">{message.email} • {new Date(message.createdAt).toLocaleDateString('fr-FR')}</p>
+                    </div>
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ backgroundColor: '#ecfeff', color: '#0891b2' }}>
+                      Contact
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2 line-clamp-2">{message.message}</p>
+                </div>
+              ))}
+              {messages.length === 0 && <div className="text-center py-10 text-gray-400 text-sm">Aucun message</div>}
             </div>
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between">
@@ -169,6 +194,39 @@ export default function AdminDashboard() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* MESSAGES */}
+        {tab === 'Messages' && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h3 className="font-semibold text-gray-800">Messages de contact ({messages.length})</h3>
+            </div>
+            {messages.length === 0 ? <div className="text-center py-16 text-gray-400 text-sm">Aucun message</div> : (
+              <div className="divide-y divide-gray-50">
+                {messages.map((message) => (
+                  <div key={message.id} className="px-6 py-5">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-gray-800 text-sm">{message.name}</p>
+                        <p className="text-gray-400 text-xs">{message.email}</p>
+                        <p className="text-gray-400 text-xs mt-1">
+                          {new Date(message.createdAt).toLocaleString('fr-FR')}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => { if (confirm('Supprimer ce message ?')) { deleteContactMessage(message.id); refresh() } }}
+                        className="self-start text-red-400 hover:text-red-600 text-xs"
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-4 whitespace-pre-line">{message.message}</p>
+                  </div>
+                ))}
               </div>
             )}
           </div>

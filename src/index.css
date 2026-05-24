@@ -15,3 +15,105 @@ body {
 a {
   text-decoration: none;
 }
+
+.home-animated-hero {
+  animation: heroBackgroundMove 18s ease-in-out infinite alternate;
+}
+
+.hero-light {
+  position: absolute;
+  width: 22rem;
+  height: 22rem;
+  border-radius: 9999px;
+  filter: blur(48px);
+  opacity: 0.34;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.hero-light-one {
+  top: 10%;
+  right: 8%;
+  background: #ff6b81;
+  animation: heroLightOne 12s ease-in-out infinite alternate;
+}
+
+.hero-light-two {
+  left: 8%;
+  bottom: 6%;
+  background: #facc15;
+  animation: heroLightTwo 14s ease-in-out infinite alternate;
+}
+
+.hero-pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.12;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.28) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.28) 1px, transparent 1px);
+  background-size: 52px 52px;
+  animation: heroPatternMove 20s linear infinite;
+}
+
+@keyframes heroBackgroundMove {
+  from {
+    background-position: center center;
+    background-size: 100%;
+  }
+
+  to {
+    background-position: center top;
+    background-size: 108%;
+  }
+}
+
+@keyframes heroLightOne {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  to {
+    transform: translate3d(-48px, 36px, 0) scale(1.12);
+  }
+}
+
+@keyframes heroLightTwo {
+  from {
+    transform: translate3d(0, 0, 0) scale(0.9);
+  }
+
+  to {
+    transform: translate3d(56px, -34px, 0) scale(1.08);
+  }
+}
+
+@keyframes heroPatternMove {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 52px 52px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-animated-hero,
+  .hero-light,
+  .hero-pattern {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-animated-hero {
+    animation-duration: 24s;
+  }
+
+  .hero-light {
+    width: 15rem;
+    height: 15rem;
+  }
+}

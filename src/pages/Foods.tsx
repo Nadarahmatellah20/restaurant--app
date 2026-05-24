@@ -3,8 +3,6 @@ import { Link } from 'wouter'
 import Footer from '@/components/Footer'
 import { getFoods, Food } from '@/lib/foods'
 
-const CATEGORIES = ['Tout', 'Pizza', 'Burger', 'Momo', 'Autre']
-
 export default function Foods() {
   const [foods, setFoods] = useState<Food[]>([])
   const [search, setSearch] = useState('')
@@ -17,6 +15,7 @@ export default function Foods() {
     const matchSearch = f.title.toLowerCase().includes(search.toLowerCase())
     return matchCat && matchSearch
   })
+  const categories = ['Tout', ...Array.from(new Set(foods.map((food) => food.category)))]
 
   return (
     <>
@@ -24,7 +23,7 @@ export default function Foods() {
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">Notre Menu</h2>
         <div className="flex flex-col sm:flex-row gap-3 mb-8 items-center justify-between">
           <div className="flex gap-2 flex-wrap">
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <button key={cat} onClick={() => setActive(cat)}
                 className="px-4 py-1.5 rounded-full text-sm font-medium transition-colors border"
                 style={active === cat
